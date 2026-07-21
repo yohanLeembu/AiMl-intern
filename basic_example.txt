@@ -1,0 +1,2 @@
+Line 1: basic Python file handling example
+Line 2: this file is created by code.
