@@ -78,11 +78,35 @@ student = {
 print(student["name"], student["age"], student["major"])
 """
 
-#file handling
+
+# file handling
+"""
 with open('filehandling.txt', 'w') as file:
     file.write("Hello, this is a test file.\n")
-    file.write("This file is created for file handling example.\n")
+    file.write("This file is created for file handling\n")
+
 
 with open("filehandling.txt","r") as file:
     print(file.read())
-    
+"""
+
+# modules
+"""
+import math
+import random
+
+print(math.sqrt(25))
+print(random.randint(1, 10))
+"""
+
+#classes (bassic Oop)
+
+class Student:
+    def __init__(self,name):
+        self.name = name
+
+    def display(self):
+        print(self.name)
+
+s = Student("Saito")
+s.display()
