@@ -1,2 +1,0 @@
-Hello from Python!
-Adding a new line.
