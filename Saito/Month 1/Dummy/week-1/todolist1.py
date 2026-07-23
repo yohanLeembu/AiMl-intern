@@ -5,7 +5,7 @@ def show_menu():
     print("3. Remove Task")
     print("4. Exit")
 
-def add_task(tasks):
+def add_task(tasks): #add task function
     task = input("Enter a new task: ")
 
     if task.strip() == "":
