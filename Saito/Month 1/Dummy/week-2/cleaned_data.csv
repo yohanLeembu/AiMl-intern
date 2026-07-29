@@ -1,0 +1,6 @@
+Name,Employee_Age,Gender,Employee_Salary
+Alice,25.0,Female,50000.0
+Bob,30.0,Male,60000.0
+Charlie,0.0,Male,55000.0
+David,28.0,Male,0.0
+Unknown,22.0,Unknown,45000.0
