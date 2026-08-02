@@ -1,3 +1,4 @@
+#1 finding the largest and the smallest
 numbers = [84, 23, 150, 52, 7, 117, 68, 31, 139, 91, 14, 128, 45, 105, 79]
 
 
@@ -16,5 +17,4 @@ for num in numbers:
         smallest = num
 
 print(f'The smallest is {smallest}, and the largest is {largest}')
-
 
