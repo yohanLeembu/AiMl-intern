@@ -1,0 +1,9 @@
+Employee_ID,Employee_Name,Employee_Age,Employee_Gender,Department,Employee_Salary
+101,Alice,25.0,Female,HR,50000.0
+102,Bob,35.0,Male,IT,65000.0
+103,Charlie,36.125,Male,IT,58000.0
+104,David,42.0,Male,Finance,63500.0
+105,Emma,31.0,Female,HR,61000.0
+106,Frank,27.0,Male,Finance,55000.0
+107,Grace,39.0,Female,IT,69000.0
+108,Henry,45.0,Male,HR,75000.0
