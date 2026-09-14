@@ -10,3 +10,5 @@ __pycache__/
 
 # Jupyter notebooks (optional)
 .ipynb_checkpoints/
+profiles.csv
+reviews.csv
