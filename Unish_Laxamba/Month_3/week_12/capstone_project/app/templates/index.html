@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Breast Cancer Diagnosis Demo — Capstone</title>
+<style>
+  body {
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    max-width: 640px;
+    margin: 36px auto;
+    color: #222;
+    padding: 0 16px;
+  }
+  h1 { font-size: 1.35rem; margin-bottom: 2px; }
+  p.sub { color: #666; margin-top: 0; }
+  .disclaimer {
+    background: #fff4e5;
+    border: 1px solid #f0c36d;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    color: #7a5b00;
+    margin-bottom: 20px;
+  }
+  .field { margin-bottom: 14px; }
+  label { display: block; font-size: 0.85rem; color: #444; margin-bottom: 3px; }
+  input[type=number] {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    box-sizing: border-box;
+  }
+  .hint { font-size: 0.75rem; color: #999; }
+  button {
+    font-size: 1rem;
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: none;
+    background: #028090;
+    color: white;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+  button:hover { background: #026e7a; }
+  #result {
+    margin-top: 22px;
+    padding: 16px;
+    border-radius: 8px;
+    display: none;
+  }
+  #result.benign { background: #e6f7f1; border: 1px solid #02C39A; }
+  #result.malignant { background: #fdeceb; border: 1px solid #990011; }
+  #result .verdict { font-size: 1.4rem; font-weight: bold; }
+  #result .confidence { font-size: 0.9rem; color: #555; margin-top: 4px; }
+</style>
+</head>
+<body>
+  <h1>Breast Cancer Diagnosis — Demo</h1>
+  <p class="sub">Capstone project deployment demo (simplified 8-feature model)</p>
+
+  <div class="disclaimer">
+    ⚠️ This is a learning-exercise demo built on a public benchmark dataset. It is
+    <b>not a validated medical tool</b> and must never be used for real diagnostic
+    decisions.
+  </div>
+
+  <form id="predict-form">
+    {% for field in fields %}
+    <div class="field">
+      <label for="{{ field.name }}">{{ field.name }}</label>
+      <input type="number" step="any" id="{{ field.name }}" name="{{ field.name }}"
+             value="{{ field.mean }}" min="0">
+      <div class="hint">typical range: {{ field.min }} – {{ field.max }}</div>
+    </div>
+    {% endfor %}
+    <button type="submit">Predict</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    const form = document.getElementById('predict-form');
+    const resultDiv = document.getElementById('result');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const values = {};
+      for (const [key, val] of formData.entries()) {
+        values[key] = val;
+      }
+
+      resultDiv.style.display = 'block';
+      resultDiv.className = '';
+      resultDiv.innerHTML = 'Predicting...';
+
+      const resp = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ values })
+      });
+      const data = await resp.json();
+
+      if (data.error) {
+        resultDiv.innerHTML = 'Error: ' + data.error;
+        return;
+      }
+
+      resultDiv.className = data.prediction;
+      const confPct = data.prediction === 'benign'
+        ? (data.confidence_benign * 100).toFixed(1)
+        : (data.confidence_malignant * 100).toFixed(1);
+
+      resultDiv.innerHTML =
+        `<div class="verdict">Prediction: ${data.prediction.toUpperCase()}</div>` +
+        `<div class="confidence">Confidence: ${confPct}% &nbsp;|&nbsp; ` +
+        `benign: ${(data.confidence_benign*100).toFixed(1)}%, malignant: ${(data.confidence_malignant*100).toFixed(1)}%</div>`;
+    });
+  </script>
+</body>
+</html>
