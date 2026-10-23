@@ -1,0 +1,52 @@
+{
+  "top8": [
+    "worst texture",
+    "radius error",
+    "worst concave points",
+    "worst area",
+    "worst radius",
+    "worst symmetry",
+    "area error",
+    "worst concavity"
+  ],
+  "means": {
+    "worst texture": 25.677223198594024,
+    "radius error": 0.40517205623901575,
+    "worst concave points": 0.11460622319859401,
+    "worst area": 880.5831282952548,
+    "worst radius": 16.269189806678387,
+    "worst symmetry": 0.2900755711775044,
+    "area error": 40.337079086116,
+    "worst concavity": 0.27218848330404216
+  },
+  "stds": {
+    "worst texture": 6.1408543185890005,
+    "radius error": 0.27706894152536526,
+    "worst concave points": 0.06567455451119314,
+    "worst area": 568.8564589532671,
+    "worst radius": 4.828992576060772,
+    "worst symmetry": 0.06181307854455481,
+    "area error": 45.45101341563996,
+    "worst concavity": 0.20844087461170602
+  },
+  "mins": {
+    "worst texture": 12.02,
+    "radius error": 0.1115,
+    "worst concave points": 0.0,
+    "worst area": 185.2,
+    "worst radius": 7.93,
+    "worst symmetry": 0.1565,
+    "area error": 6.802,
+    "worst concavity": 0.0
+  },
+  "maxs": {
+    "worst texture": 49.54,
+    "radius error": 2.873,
+    "worst concave points": 0.291,
+    "worst area": 4254.0,
+    "worst radius": 36.04,
+    "worst symmetry": 0.6638,
+    "area error": 542.2,
+    "worst concavity": 1.252
+  }
+}
