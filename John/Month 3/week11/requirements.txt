@@ -1,0 +1,4 @@
+flask>=2.2
+numpy
+pillow>=9.1
+torch>=1.13

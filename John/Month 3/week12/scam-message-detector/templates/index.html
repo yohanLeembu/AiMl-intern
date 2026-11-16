@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scam message detector</title>
+<style>
+  :root {
+    --bg: #f1f3f2; --ink: #1d2523; --muted: #5d6967; --panel: #ffffff; --line: #d1d8d6;
+    --scam: #b3261e; --safe: #1b7a4b; --scam-bg: #fdecea; --safe-bg: #e6f4ec; --accent: #134e4a;
+    --accent-ink: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121615; --ink: #e8eeec; --muted: #9bb0ac; --panel: #1b2120; --line: #34413f;
+      --scam: #ff8a80; --safe: #6fd6a1; --scam-bg: #3a1f1d; --safe-bg: #17332a; --accent: #5eead4;
+      --accent-ink: #0b1513;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.5; }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 20px 48px; }
+  h1 { font-size: 1.7rem; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .lede { margin: 0 0 22px; color: var(--muted); max-width: 60ch; }
+  textarea { width: 100%; min-height: 130px; padding: 12px; font: inherit; color: var(--ink);
+             background: var(--panel); border: 2px solid var(--line); border-radius: 6px; resize: vertical; }
+  textarea:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 12px 0 0; }
+  button { font: inherit; font-weight: 600; padding: 10px 18px; border-radius: 6px; cursor: pointer;
+           border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  button.link { border: none; background: none; padding: 4px 0; font-weight: 500; color: var(--accent);
+                text-decoration: underline; }
+  button:disabled { opacity: .55; cursor: default; }
+  .samples { color: var(--muted); font-size: .9rem; }
+  #out { margin-top: 24px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 20px; }
+  .verdict { display: inline-block; font-size: 1.5rem; font-weight: 700; padding: 6px 14px; border-radius: 6px; margin: 0 0 14px; }
+  .verdict.scam { color: var(--scam); background: var(--scam-bg); }
+  .verdict.safe { color: var(--safe); background: var(--safe-bg); }
+  .score-head { display: flex; justify-content: space-between; font-size: .95rem; margin-bottom: 4px; }
+  .track { height: 10px; background: var(--bg); border-radius: 5px; overflow: hidden; }
+  .fill { height: 100%; width: 0; border-radius: 5px; }
+  .fill.scam { background: var(--scam); } .fill.safe { background: var(--safe); }
+  h2 { font-size: 1rem; margin: 22px 0 6px; }
+  ul.chips { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 3px 10px; border-radius: 999px; font-size: .9rem; border: 1px solid var(--line); }
+  .chip.scam { color: var(--scam); background: var(--scam-bg); border-color: transparent; }
+  .chip.safe { color: var(--safe); background: var(--safe-bg); border-color: transparent; }
+  .none { color: var(--muted); margin: 0; font-size: .9rem; }
+  .error { color: var(--scam); font-weight: 600; margin: 0; }
+  .note { margin-top: 22px; color: var(--muted); font-size: .85rem; }
+  @media (prefers-reduced-motion: no-preference) { .fill { transition: width .3s ease; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Scam message detector</h1>
+  <p class="lede">Paste a text message and the model scores how scam-like it looks and shows the words behind its decision.</p>
+
+  <label for="msg" class="samples">Message</label>
+  <textarea id="msg" maxlength="2000" placeholder="Paste a text message here"></textarea>
+  <div class="row">
+    <button type="button" class="primary" id="check">Check message</button>
+    <button type="button" id="clear">Clear</button>
+    <span class="samples">Try an example:</span>
+    <button type="button" class="link" data-sample="0">prize message</button>
+    <button type="button" class="link" data-sample="1">normal message</button>
+  </div>
+
+  <div id="out" aria-live="polite"></div>
+
+  <p class="note">This is a statistical guess from a model trained on example text messages, not a guarantee.
+     Never click links or share codes because of a message you are unsure about.</p>
+</main>
+
+<script>
+(function () {
+  const SAMPLES = [
+    "URGENT! You have won a £1000 cash prize. Call 09012345678 now or visit www.claim-prize-now.com to collect your reward.",
+    "Hey, are we still meeting at 6 for dinner? I will bring the umbrella."
+  ];
+  const msg = document.getElementById("msg");
+  const out = document.getElementById("out");
+  const checkBtn = document.getElementById("check");
+
+  function show(node) { while (out.firstChild) out.removeChild(out.firstChild); if (node) out.appendChild(node); }
+  function el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined) n.textContent = text;
+    return n;
+  }
+  function chips(title, items, cls, emptyText) {
+    const wrap = el("div");
+    wrap.appendChild(el("h2", null, title));
+    if (!items.length) { wrap.appendChild(el("p", "none", emptyText)); return wrap; }
+    const ul = el("ul", "chips");
+    items.forEach(function (it) {
+      const li = el("li", "chip " + cls, it.term);
+      li.title = "weight " + it.weight;
+      ul.appendChild(li);
+    });
+    wrap.appendChild(ul);
+    return wrap;
+  }
+
+  function render(d) {
+    const kind = d.is_scam ? "scam" : "safe";
+    const card = el("div", "card");
+    card.appendChild(el("p", "verdict " + kind, d.is_scam ? "Likely a scam" : "Looks safe"));
+
+    const pct = d.score * 100;
+    const head = el("div", "score-head");
+    head.appendChild(el("span", null, "Scam score"));
+    head.appendChild(el("span", null, pct.toFixed(1) + "%"));
+    const track = el("div", "track");
+    const fill = el("div", "fill " + kind);
+    track.appendChild(fill);
+    card.appendChild(head);
+    card.appendChild(track);
+
+    card.appendChild(chips("Words pointing to a scam", d.spam_signals, "scam", "No strong scam words found."));
+    card.appendChild(chips("Words pointing to a normal message", d.safe_signals, "safe", "No strong normal-message words found."));
+    show(card);
+    requestAnimationFrame(function () { fill.style.width = pct + "%"; });
+  }
+
+  checkBtn.addEventListener("click", async function () {
+    checkBtn.disabled = true;
+    show(el("p", "none", "Checking…"));
+    try {
+      const res = await fetch("/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg.value })
+      });
+      let data = {};
+      try { data = await res.json(); } catch (_) { /* not JSON */ }
+      if (!res.ok) show(el("p", "error", data.error || "Something went wrong (" + res.status + ")."));
+      else render(data);
+    } catch (e) {
+      show(el("p", "error", "Could not reach the server. Is app.py still running?"));
+    } finally {
+      checkBtn.disabled = false;
+    }
+  });
+
+  document.getElementById("clear").addEventListener("click", function () { msg.value = ""; show(null); msg.focus(); });
+  document.querySelectorAll("[data-sample]").forEach(function (b) {
+    b.addEventListener("click", function () { msg.value = SAMPLES[Number(b.dataset.sample)]; show(null); });
+  });
+})();
+</script>
+</body>
+</html>
